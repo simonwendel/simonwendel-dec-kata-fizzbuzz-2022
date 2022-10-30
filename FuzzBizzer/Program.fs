@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 open System.Diagnostics
+open System.IO
 open canopy.classic
 open canopy.configuration
 
@@ -27,7 +28,7 @@ let openWikiListOfDivisors () =
     click "#searchButton"
     click "1 to 100"
 
-let wikiDivisorsFor number =
+let wikiDivisors number =
     fastTextFromCSS $"th:has([title*='%d{number} (number)'])+td"
     |> List.head
     |> fun x -> x.Split ","
@@ -36,22 +37,38 @@ let wikiDivisorsFor number =
 
 let constructPuzzle rules number =
     let rulesMap = Map.ofList rules
-    let words number = 
-        wikiDivisorsFor number 
-        |> List.map (fun n -> Map.tryFind n rulesMap) 
-        |> List.choose id
 
-    match (words number) with
+    let collectWords =
+        wikiDivisors
+        >> List.map (fun n -> Map.tryFind n rulesMap)
+        >> List.choose id
+
+    match collectWords number with
     | [] -> string number
     | values -> values |> String.concat ""
 
+type LogFile =
+    { file: StreamWriter
+      show: unit -> unit }
+
+let log =
+    let filename = "fizzbuzz.txt"
+    let file = File.CreateText(filename)
+
+    { file = file
+      show =
+          fun () ->
+              file.Dispose()
+              Process.Start(@"notepad.exe", filename) |> ignore }
+
 let run puzzle =
     openWikiListOfDivisors ()
-    let filename = "fizzbuzz.txt"
-    use file = System.IO.File.CreateText(filename)
-    [1..100] |> List.iter (puzzle >> fprintfn file "%s")
-    Process.Start(@"notepad.exe", filename) |> ignore
 
-let fizzBuzz = constructPuzzle [3, "Fizz"; 5, "Buzz"]
+    [ 1 .. 100 ]
+    |> List.iter (puzzle >> fprintfn log.file "%s")
+
+    log.show ()
+
+let fizzBuzz = constructPuzzle [ 3, "Fizz"; 5, "Buzz" ]
 run fizzBuzz
 quit chrome
