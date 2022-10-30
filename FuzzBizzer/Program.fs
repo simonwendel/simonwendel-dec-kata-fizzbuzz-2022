@@ -1,4 +1,4 @@
-// WikiFuzz FuzzBizzer - a Lazy implementation of FizzBuzz
+// WikiFuzz FuzzBizzer - a Web-enabled lazy implementation of FizzBuzz
 // Copyright (C) 2022  Simon Wendel
 //
 // This program is free software: you can redistribute it and/or modify
