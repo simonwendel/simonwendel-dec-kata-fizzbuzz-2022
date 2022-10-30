@@ -19,9 +19,6 @@ open System.IO
 open canopy.classic
 open canopy.configuration
 
-chromeDir <- System.AppContext.BaseDirectory
-start chrome
-
 let openWikiListOfDivisors () =
     url "https://en.wikipedia.org/"
     "#searchInput" << "Table of divisors"
@@ -45,14 +42,14 @@ let constructPuzzle rules number =
 
     match collectWords number with
     | [] -> string number
-    | values -> values |> String.concat ""
+    | values -> String.concat "" values
 
-type LogFile =
+type Log =
     { file: StreamWriter
       show: unit -> unit }
 
 let log =
-    let filename = "fizzbuzz.txt"
+    let filename = "log.txt"
     let file = File.CreateText(filename)
 
     { file = file
@@ -62,13 +59,15 @@ let log =
               Process.Start(@"notepad.exe", filename) |> ignore }
 
 let run puzzle =
+    chromeDir <- System.AppContext.BaseDirectory
+    start chrome
+
     openWikiListOfDivisors ()
 
     [ 1 .. 100 ]
     |> List.iter (puzzle >> fprintfn log.file "%s")
 
     log.show ()
+    quit chrome
 
-let fizzBuzz = constructPuzzle [ 3, "Fizz"; 5, "Buzz" ]
-run fizzBuzz
-quit chrome
+run <| constructPuzzle [ 3, "Fizz"; 5, "Buzz" ]
